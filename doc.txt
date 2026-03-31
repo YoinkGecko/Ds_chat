@@ -1,0 +1,15 @@
+setup for diffrent machine:
+ "http://localhost:5001",
+  "http://localhost:5002",
+  "http://localhost:5003"
+  
+  instead of this three use this : "https://7hfq6wdq-5003.inc1.devtunnels.ms" 
+  edit in LB.js at both place server and history
+
+  to start server install express and then node server.js 5001 | 5002 | 5003
+
+
+  LB on mac start: node LB.js 
+  visit http://localhost:4000 to see all server load score 
+
+  

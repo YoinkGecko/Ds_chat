@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Load Balancer Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>Server Load (Score)</h2>
+<canvas id="chart" width="900" height="450"></canvas>
+
+<script>
+const ctx = document.getElementById('chart').getContext('2d');
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      { label: 'Server 5001', data: [], borderWidth: 2 },
+      { label: 'Server 5002', data: [], borderWidth: 2 },
+      { label: 'Server 5003', data: [], borderWidth: 2 }
+    ]
+  },
+  options: {
+    animation: false,
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Server Load Over Time'
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Time (mm:ss.ms)'
+        }
+      },
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Load Score'
+        }
+      }
+    }
+  }
+});
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return `${d.getMinutes()}:${d.getSeconds()}.${d.getMilliseconds()}`;
+}
+
+async function fetchData() {
+  try {
+    const res = await fetch("http://localhost:4000/stats");
+    const data = await res.json();
+
+    const keys = Object.keys(data);
+
+    if (keys.length === 0) return;
+
+    // use first server for labels
+    const labels = data[keys[0]].map(point => formatTime(point.time));
+    chart.data.labels = labels;
+
+    chart.data.datasets[0].data = data[keys[0]].map(p => p.score);
+    chart.data.datasets[1].data = data[keys[1]].map(p => p.score);
+    chart.data.datasets[2].data = data[keys[2]].map(p => p.score);
+
+    chart.update();
+  } catch (err) {
+    console.error("Error fetching data:", err);
+  }
+}
+
+// refresh every 100ms
+setInterval(fetchData, 100);
+</script>
+
+</body>
+</html>
