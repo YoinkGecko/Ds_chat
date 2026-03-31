@@ -27,6 +27,7 @@ function Page() {
 
     setText("");
   };
+
   // fetch users (via LB → best server)
   useEffect(() => {
     setSelfUsername(localStorage.getItem("myUsername"));
