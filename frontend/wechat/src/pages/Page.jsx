@@ -49,6 +49,31 @@ function Page() {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    if (!selectedUser || !selfUsername) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const lbRes = await axios.get("http://localhost:4000/bs");
+        const server = lbRes.data.bestServer;
+
+        const res = await axios.get(`${server}/messages`, {
+          params: {
+            user1: selfUsername,
+            user2: selectedUser,
+          },
+        });
+
+        setMessages(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    }, 2000); // every 2 sec
+
+    return () => clearInterval(interval); // cleanup
+  }, [selectedUser, selfUsername]);
+
   // fetch users (via LB → best server)
   useEffect(() => {
     setSelfUsername(localStorage.getItem("myUsername"));
@@ -146,7 +171,18 @@ function Page() {
                     maxWidth: "60%",
                   }}
                 >
-                  {msg.message}
+                  <div>{msg.message}</div>
+
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "gray",
+                      textAlign: "right",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {new Date(msg.created_at).toLocaleTimeString()}
+                  </div>
                 </div>
               ))}
             </div>

@@ -18,4 +18,4 @@ CREATE TABLE messages (
 );
 
 
-select * from users;
+select * from messages;
