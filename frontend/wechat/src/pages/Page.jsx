@@ -8,26 +8,47 @@ function Page() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
-  const getMessages = (user) => {
+  const getMessages = async (user) => {
     setSelectedUser(user);
 
-    // fake messages for now
-    setMessages([
-      { sender: selfUsername, message: "Hi" },
-      { sender: user, message: "Hello!" },
-      { sender: selfUsername, message: "How are you?" },
-      { sender: user, message: "Good 👍" },
-    ]);
+    try {
+      const lbRes = await axios.get("http://localhost:4000/bs");
+      const server = lbRes.data.bestServer;
+
+      const res = await axios.get(`${server}/messages`, {
+        params: {
+          user1: selfUsername,
+          user2: user,
+        },
+      });
+
+      setMessages(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const send = () => {
+  const send = async () => {
     if (!text.trim()) return;
 
-    setMessages((prev) => [...prev, { sender: selfUsername, message: text }]);
+    try {
+      const lbRes = await axios.get("http://localhost:4000/bs");
+      const server = lbRes.data.bestServer;
 
-    setText("");
+      await axios.post(`${server}/send`, {
+        sender: selfUsername,
+        receiver: selectedUser,
+        message: text,
+      });
+
+      // update UI instantly
+      setMessages((prev) => [...prev, { sender: selfUsername, message: text }]);
+
+      setText("");
+    } catch (err) {
+      console.error(err);
+    }
   };
-
   // fetch users (via LB → best server)
   useEffect(() => {
     setSelfUsername(localStorage.getItem("myUsername"));

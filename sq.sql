@@ -9,4 +9,13 @@ CREATE TABLE users (
   password VARCHAR(100)
 );
 
+CREATE TABLE messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sender VARCHAR(50) NOT NULL,
+  receiver VARCHAR(50) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 select * from users;

@@ -10,6 +10,7 @@ const db = mysql.createPool({
 });
 
 const app = express();
+app.use(express.json());
 const PORT = process.argv[2];
 const cors = require("cors");
 app.use(cors({
@@ -67,6 +68,55 @@ app.get("/users", async (req, res) => {
     res.json(rows);
 
   } catch (err) {
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.post("/send", async (req, res) => {
+  const { sender, receiver, message } = req.body;
+
+  if (!sender || !receiver || !message) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  try {
+    await db.query(
+      "INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)",
+      [sender, receiver, message]
+    );
+
+    res.json({ message: "Message sent" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.get("/messages", async (req, res) => {
+  const { user1, user2 } = req.query;
+
+  if (!user1 || !user2) {
+    return res.status(400).json({ error: "Missing users" });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT * FROM messages
+      WHERE 
+        (sender = ? AND receiver = ?)
+        OR
+        (sender = ? AND receiver = ?)
+      ORDER BY created_at ASC
+      `,
+      [user1, user2, user2, user1]
+    );
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
