@@ -15,6 +15,7 @@ function Login() {
     try {
       const res = await axios.post("http://localhost:4000/login", form);
       alert(res.data.message);
+      localStorage.setItem("myUsername", form.username);
       navigate("/page");
     } catch (err) {
       alert(err.response?.data?.error || "Error");
