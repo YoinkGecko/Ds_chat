@@ -36,6 +36,33 @@ let history = {
 
 const MAX_POINTS = 50;
 
+let serverStatus = servers.map(url => ({
+  url: url,
+  status: "active" 
+}));
+setInterval(async () => {
+  for (const server of serverStatus) {
+    try {
+      const res = await axios.get(`${server.url}/test`, { timeout: 2000 });
+      
+      if (res.data) {
+        server.status = "active";
+      } else {
+        server.status = "down";
+        console.error(`${server.url} returned no data: ${new Date()}`);
+      }
+      
+    } catch (err) {
+      server.status = "down";
+      console.error(`${server.url} is DOWN: ${new Date()}`);
+    }
+  }
+
+  console.log(serverStatus);
+}, 1000);
+
+
+
 // collect metrics every 100ms
 setInterval(async () => {
   await Promise.all(
