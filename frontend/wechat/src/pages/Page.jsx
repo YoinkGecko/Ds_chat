@@ -99,6 +99,16 @@ function Page() {
   const getPalette = (name) =>
     palettes[(name?.charCodeAt(0) || 0) % palettes.length];
 
+  const handleVoiceCall = (e, targetUser) => {
+    e.stopPropagation();
+    alert(`📞 Voice call\nFrom: ${selfUsername}\nTo: ${targetUser}`);
+  };
+
+  const handleVideoCall = (e, targetUser) => {
+    e.stopPropagation();
+    alert(`🎥 Video call\nFrom: ${selfUsername}\nTo: ${targetUser}`);
+  };
+
   return (
     <>
       <style>{`
@@ -113,11 +123,8 @@ function Page() {
           font-family:'Plus Jakarta Sans',sans-serif;
           overflow:hidden; position:relative;
         }
-
         .mc-bg { position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden; }
-        .mc-bg-orb {
-          position:absolute; border-radius:9999px;
-        }
+        .mc-bg-orb { position:absolute; border-radius:9999px; }
         .mc-bg-orb-1 {
           width:55vw;height:55vw; top:-20%;left:-10%;
           background:radial-gradient(circle,rgba(70,71,211,0.18) 0%,transparent 70%);
@@ -140,7 +147,7 @@ function Page() {
 
         /* ── SIDEBAR ── */
         .mc-sidebar {
-          width:320px;min-width:280px;
+          width:340px;min-width:280px;
           display:flex;flex-direction:column;
           background:rgba(255,255,255,0.62);
           backdrop-filter:blur(48px);-webkit-backdrop-filter:blur(48px);
@@ -148,7 +155,6 @@ function Page() {
           box-shadow:4px 0 40px rgba(70,71,211,0.06);
           position:relative;z-index:2;
         }
-
         .mc-sb-top { padding:28px 24px 20px; }
         .mc-sb-brand {
           font-family:'Space Grotesk',sans-serif;
@@ -160,7 +166,6 @@ function Page() {
           background:linear-gradient(135deg,#4647d3,#b80438);
           animation:mc-blink 2s infinite;
         }
-
         .mc-self-card {
           background:linear-gradient(135deg,rgba(70,71,211,0.08),rgba(184,4,56,0.05));
           border:1px solid rgba(70,71,211,0.1);
@@ -179,7 +184,6 @@ function Page() {
           display:flex;align-items:center;gap:5px;
           font-size:11px;color:#006947;font-weight:600;margin-top:2px;
         }
-
         .mc-peers-label {
           padding:16px 24px 10px;
           font-size:10px;font-weight:700;text-transform:uppercase;
@@ -190,17 +194,17 @@ function Page() {
           background:rgba(70,71,211,0.08);color:#4647d3;
           font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;
         }
-
         .mc-userlist{flex:1;overflow-y:auto;padding:0 12px 16px;}
         .mc-userlist::-webkit-scrollbar{width:0;}
 
+        /* user row — call buttons appear on hover */
         .mc-user-row {
-          display:flex;align-items:center;gap:14px;
-          padding:13px 14px;border-radius:16px;
+          display:flex;align-items:center;gap:12px;
+          padding:12px 14px;border-radius:16px;
           cursor:pointer;margin-bottom:4px;position:relative;
           transition:all 0.25s cubic-bezier(0.23,1,0.32,1);
         }
-        .mc-user-row:hover{background:rgba(70,71,211,0.06);transform:translateX(3px);}
+        .mc-user-row:hover{background:rgba(70,71,211,0.06);transform:translateX(2px);}
         .mc-user-row.active{
           background:linear-gradient(135deg,rgba(70,71,211,0.12),rgba(70,71,211,0.06));
           box-shadow:0 2px 16px rgba(70,71,211,0.1);
@@ -221,7 +225,51 @@ function Page() {
           font-size:12px;color:#747779;margin-top:1px;
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
         }
-        .mc-user-row-badge{width:8px;height:8px;border-radius:9999px;background:rgba(0,105,71,0.5);flex-shrink:0;}
+
+        /* call buttons — hidden by default, shown on row hover */
+        .mc-call-btns {
+          display:flex;gap:4px;flex-shrink:0;
+          opacity:0;
+          transform:translateX(6px);
+          transition:opacity 0.2s,transform 0.2s;
+          pointer-events:none;
+        }
+        .mc-user-row:hover .mc-call-btns,
+        .mc-user-row.active .mc-call-btns {
+          opacity:1;
+          transform:translateX(0);
+          pointer-events:auto;
+        }
+        .mc-call-btn {
+          width:32px;height:32px;border-radius:10px;
+          display:flex;align-items:center;justify-content:center;
+          border:none;cursor:pointer;
+          transition:all 0.2s cubic-bezier(0.23,1,0.32,1);
+          flex-shrink:0;
+        }
+        .mc-call-btn-voice {
+          background:rgba(0,105,71,0.1);
+          color:#006947;
+        }
+        .mc-call-btn-voice:hover {
+          background:linear-gradient(135deg,#006947,#059669);
+          color:#fff;
+          transform:scale(1.12);
+          box-shadow:0 4px 14px rgba(0,105,71,0.35);
+        }
+        .mc-call-btn-video {
+          background:rgba(70,71,211,0.1);
+          color:#4647d3;
+        }
+        .mc-call-btn-video:hover {
+          background:linear-gradient(135deg,#4647d3,#6366f1);
+          color:#fff;
+          transform:scale(1.12);
+          box-shadow:0 4px 14px rgba(70,71,211,0.35);
+        }
+        .mc-call-btn-voice:active,.mc-call-btn-video:active{transform:scale(0.93);}
+
+        .mc-user-row-badge{width:7px;height:7px;border-radius:9999px;background:rgba(0,105,71,0.5);flex-shrink:0;}
 
         .mc-av {
           border-radius:14px;display:flex;align-items:center;justify-content:center;
@@ -231,7 +279,6 @@ function Page() {
 
         /* ── MAIN ── */
         .mc-main{flex:1;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden;}
-
         .mc-topbar {
           padding:18px 32px;display:flex;align-items:center;gap:16px;
           background:rgba(255,255,255,0.55);backdrop-filter:blur(32px);
@@ -251,6 +298,42 @@ function Page() {
           width:7px;height:7px;border-radius:9999px;background:#006947;
           animation:mc-blink 2s ease-in-out infinite;
         }
+
+        /* topbar call buttons (bigger, always visible) */
+        .mc-topbar-actions { display:flex; gap:8px; align-items:center; }
+        .mc-topbar-call {
+          display:flex;align-items:center;gap:6px;
+          padding:8px 16px;border-radius:9999px;
+          border:none;cursor:pointer;
+          font-family:'Plus Jakarta Sans',sans-serif;
+          font-size:12px;font-weight:700;
+          text-transform:uppercase;letter-spacing:0.08em;
+          transition:all 0.25s cubic-bezier(0.23,1,0.32,1);
+        }
+        .mc-topbar-call-voice {
+          background:rgba(0,105,71,0.08);
+          border:1px solid rgba(0,105,71,0.15);
+          color:#006947;
+        }
+        .mc-topbar-call-voice:hover {
+          background:linear-gradient(135deg,#006947,#059669);
+          border-color:transparent;color:#fff;
+          box-shadow:0 4px 16px rgba(0,105,71,0.3);
+          transform:scale(1.04);
+        }
+        .mc-topbar-call-video {
+          background:rgba(70,71,211,0.08);
+          border:1px solid rgba(70,71,211,0.15);
+          color:#4647d3;
+        }
+        .mc-topbar-call-video:hover {
+          background:linear-gradient(135deg,#4647d3,#6366f1);
+          border-color:transparent;color:#fff;
+          box-shadow:0 4px 16px rgba(70,71,211,0.3);
+          transform:scale(1.04);
+        }
+        .mc-topbar-call:active{transform:scale(0.96);}
+
         .mc-topbar-pill{
           display:flex;align-items:center;gap:6px;
           background:rgba(70,71,211,0.07);border:1px solid rgba(70,71,211,0.12);
@@ -265,10 +348,8 @@ function Page() {
         }
         .mc-msgs::-webkit-scrollbar{width:5px;}
         .mc-msgs::-webkit-scrollbar-thumb{background:rgba(171,173,175,0.25);border-radius:3px;}
-
         .mc-bubble-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:3px;}
         .mc-bubble-row.self{flex-direction:row-reverse;}
-
         .mc-bubble{
           max-width:62%;padding:13px 18px;border-radius:22px;
           word-break:break-word;position:relative;
@@ -293,7 +374,6 @@ function Page() {
         .mc-bubble-time{font-size:10px;opacity:0.45;}
         .mc-bubble.other .mc-bubble-time{color:#2c2f31;}
         .mc-bubble.self .mc-bubble-time{color:#f4f1ff;}
-
         .mc-mini-av{
           width:32px;height:32px;border-radius:10px;flex-shrink:0;
           display:flex;align-items:center;justify-content:center;
@@ -433,19 +513,43 @@ function Page() {
                     <div
                       className="mc-av"
                       style={{
-                        width: 46,
-                        height: 46,
-                        fontSize: 18,
+                        width: 44,
+                        height: 44,
+                        fontSize: 17,
                         background: p.bg,
                         color: p.text,
                       }}
                     >
                       {getInitial(user.username)}
                     </div>
+
                     <div className="mc-user-row-info">
                       <div className="mc-user-row-name">{user.username}</div>
                       <div className="mc-user-row-phone">{user.phone}</div>
                     </div>
+
+                    {/* ── CALL BUTTONS ── */}
+                    <div className="mc-call-btns">
+                      <button
+                        className="mc-call-btn mc-call-btn-voice"
+                        title={`Voice call ${user.username}`}
+                        onClick={(e) => handleVoiceCall(e, user.username)}
+                      >
+                        <span className="msym" style={{ fontSize: 16 }}>
+                          call
+                        </span>
+                      </button>
+                      <button
+                        className="mc-call-btn mc-call-btn-video"
+                        title={`Video call ${user.username}`}
+                        onClick={(e) => handleVideoCall(e, user.username)}
+                      >
+                        <span className="msym" style={{ fontSize: 16 }}>
+                          videocam
+                        </span>
+                      </button>
+                    </div>
+
                     <div className="mc-user-row-badge" />
                   </div>
                 );
@@ -457,6 +561,7 @@ function Page() {
         <main className="mc-main">
           {selectedUser ? (
             <>
+              {/* top bar */}
               <div className="mc-topbar">
                 <div
                   className="mc-av"
@@ -477,14 +582,38 @@ function Page() {
                     E2E Encrypted · Mesh Routed
                   </div>
                 </div>
+
+                {/* topbar call buttons */}
+                <div className="mc-topbar-actions">
+                  <button
+                    className="mc-topbar-call mc-topbar-call-voice"
+                    onClick={(e) => handleVoiceCall(e, selectedUser)}
+                  >
+                    <span className="msym" style={{ fontSize: 16 }}>
+                      call
+                    </span>
+                    Voice
+                  </button>
+                  <button
+                    className="mc-topbar-call mc-topbar-call-video"
+                    onClick={(e) => handleVideoCall(e, selectedUser)}
+                  >
+                    <span className="msym" style={{ fontSize: 16 }}>
+                      videocam
+                    </span>
+                    Video
+                  </button>
+                </div>
+
                 <div className="mc-topbar-pill">
                   <span className="msym" style={{ fontSize: 14 }}>
                     lock
                   </span>
-                  Secure Channel
+                  Secure
                 </div>
               </div>
 
+              {/* messages */}
               <div className="mc-msgs">
                 {messages.length === 0 && (
                   <div
@@ -555,6 +684,7 @@ function Page() {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* input bar */}
               <div className="mc-inputbar">
                 <div className="mc-input-shell">
                   <span className="msym">mood</span>
