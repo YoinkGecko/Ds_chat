@@ -203,6 +203,10 @@ io.on("connection", (socket) => {
   });
 });
 
+app.get("/status", (req, res) => {
+  res.json(serverStatus);
+});
+
 httpServer.listen(4000, () =>
   console.log("LB + signaling running on port 4000")
 );

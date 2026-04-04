@@ -9,6 +9,9 @@
 <h2>Server Load (Score)</h2>
 <canvas id="chart" width="900" height="450"></canvas>
 
+<h2>Server Status</h2>
+<ul id="statusList"></ul>
+
 <script>
 const ctx = document.getElementById('chart').getContext('2d');
 
@@ -60,10 +63,8 @@ async function fetchData() {
     const data = await res.json();
 
     const keys = Object.keys(data);
-
     if (keys.length === 0) return;
 
-    // use first server for labels
     const labels = data[keys[0]].map(point => formatTime(point.time));
     chart.data.labels = labels;
 
@@ -77,8 +78,32 @@ async function fetchData() {
   }
 }
 
-// refresh every 100ms
-setInterval(fetchData, 100);
+async function fetchStatus() {
+  try {
+    const res = await fetch("http://localhost:4000/status");
+    const data = await res.json();
+
+    const list = document.getElementById("statusList");
+    list.innerHTML = "";
+
+    data.forEach(server => {
+      const li = document.createElement("li");
+      li.textContent = `${server.url} → ${server.status}`;
+      li.style.fontWeight = "bold";
+      li.style.color = server.status === "active" ? "green" : "red";
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error("Error fetching status:", err);
+  }
+}
+
+setInterval(fetchData, 1000);
+setInterval(fetchStatus, 1000);
+
+fetchData();
+fetchStatus();
 </script>
 
 </body>
