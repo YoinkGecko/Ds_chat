@@ -3,6 +3,9 @@ const axios = require("axios");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
 const path = require("path");
+const { exec } = require('child_process');
+
+let BackUpPort = 6000;
 
 const app = express();
 app.use(cors());
@@ -40,6 +43,7 @@ let serverStatus = servers.map(url => ({
   url: url,
   status: "active" 
 }));
+
 setInterval(async () => {
   for (const server of serverStatus) {
     try {
@@ -48,13 +52,29 @@ setInterval(async () => {
       if (res.data) {
         server.status = "active";
       } else {
-        server.status = "down";
-        console.error(`${server.url} returned no data: ${new Date()}`);
+        // Treat no data as a failure to trigger the catch logic
+        throw new Error("No data received");
       }
       
     } catch (err) {
-      server.status = "down";
-      console.error(`${server.url} is DOWN: ${new Date()}`);
+      // CRITICAL: Only run the restart logic if the server wasn't already down
+      if (server.status !== "down") {
+        server.status = "down";
+        console.error(`${server.url} is DOWN: ${new Date()}`);
+
+        const currentBackup = BackUpPort;
+        exec(`node server.js ${currentBackup}`, (error) => {
+          if (error) {
+            console.error(`Execution error on port ${currentBackup}: ${error.message}`);
+          }
+        });
+
+        console.log(`Backup server initiated on: node server.js ${currentBackup}`);
+        BackUpPort++; // Increment so the next failure gets a unique port
+      } else {
+        // Optional: Log that it's still down without spawning a new process
+        console.log(`${server.url} is still down. Waiting for recovery...`);
+      }
     }
   }
 
