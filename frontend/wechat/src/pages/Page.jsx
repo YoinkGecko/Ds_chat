@@ -36,6 +36,7 @@ export default function Page() {
   const callTypeRef = useRef("voice");
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
+  const remoteStreamRef = useRef(null); // store remote stream for re-apply
   const incomingOfferRef = useRef(null); // stores offer while ringing
   const callTimerRef = useRef(null);
 
@@ -183,6 +184,7 @@ export default function Page() {
 
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
+    remoteStreamRef.current = null;
 
     pcRef.current?.close();
     pcRef.current = null;
@@ -226,8 +228,18 @@ export default function Page() {
 
       pc.ontrack = ({ streams }) => {
         const stream = streams[0];
-        if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream;
-        if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream;
+        remoteStreamRef.current = stream;
+        // Video calls: assign to <video> (handles both audio+video tracks)
+        // Voice calls: assign to hidden <audio>
+        if (callTypeRef.current === "video") {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = stream;
+          }
+        } else {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = stream;
+          }
+        }
       };
 
       pc.onconnectionstatechange = () => {
@@ -272,8 +284,12 @@ export default function Page() {
       }
 
       localStreamRef.current = stream;
-      if (localVideoRef.current && type === "video")
-        localVideoRef.current.srcObject = stream;
+      // Defer srcObject assignment — the video element renders after state update
+      if (type === "video") {
+        setTimeout(() => {
+          if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        }, 50);
+      }
 
       const pc = createPC(peer);
       stream.getTracks().forEach((t) => pc.addTrack(t, stream));
@@ -309,8 +325,13 @@ export default function Page() {
     }
 
     localStreamRef.current = stream;
-    if (localVideoRef.current && type === "video")
-      localVideoRef.current.srcObject = stream;
+    // Defer srcObject — state is already "incoming", video el is rendered but
+    // setCallState("active") hasn't happened yet; setTimeout keeps it safe
+    if (type === "video") {
+      setTimeout(() => {
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      }, 50);
+    }
 
     const pc = createPC(peer);
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
@@ -329,6 +350,16 @@ export default function Page() {
     callStateRef.current = "active";
     setCallState("active");
     startTimer();
+    // Re-apply in case ontrack fired before video element was visible
+    setTimeout(() => {
+      if (
+        remoteStreamRef.current &&
+        callTypeRef.current === "video" &&
+        remoteVideoRef.current
+      ) {
+        remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      }
+    }, 50);
   }, [cleanupCall, createPC]);
 
   // ── Reject / End ──────────────────────────────────────────────────────────
@@ -399,6 +430,16 @@ export default function Page() {
         callStateRef.current = "active";
         setCallState("active");
         startTimer();
+        // Re-apply remote stream in case ontrack fired before video el was visible
+        setTimeout(() => {
+          if (
+            remoteStreamRef.current &&
+            callTypeRef.current === "video" &&
+            remoteVideoRef.current
+          ) {
+            remoteVideoRef.current.srcObject = remoteStreamRef.current;
+          }
+        }, 50);
         console.log("Caller is now ACTIVE");
       } catch (err) {
         console.error("setRemoteDescription failed:", err);
@@ -596,24 +637,31 @@ export default function Page() {
         <div className="call-overlay">
           <div className="call-backdrop" />
           <div className="call-card">
-            {/* Remote + local video (only when active video call) */}
-            {callType === "video" && callState === "active" && (
-              <div className="call-videos">
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  className="call-video-remote"
-                />
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="call-video-local"
-                />
-              </div>
-            )}
+            {/* Video elements — always in DOM so refs are always valid.
+                Hidden via display:none when not a video call or not active. */}
+            <div
+              className="call-videos"
+              style={{
+                display:
+                  callType === "video" && callState === "active"
+                    ? "flex"
+                    : "none",
+              }}
+            >
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="call-video-remote"
+              />
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="call-video-local"
+              />
+            </div>
 
             <div className="call-content">
               <div
