@@ -27,9 +27,9 @@ const db = mysql.createPool({
 });
 
 const servers = [
-  "http://localhost:5001",
-  "http://localhost:5002",
-  "http://localhost:5003",
+  "https://cgq4646h-5001.inc1.devtunnels.ms",
+  "https://cgq4646h-5002.inc1.devtunnels.ms",
+  "https://cgq4646h-5003.inc1.devtunnels.ms",
 ];
 
 function calculateScore(cpu, memory) {
@@ -38,9 +38,9 @@ function calculateScore(cpu, memory) {
 }
 
 let history = {
-  "http://localhost:5001": [],
-  "http://localhost:5002": [],
-  "http://localhost:5003": [],
+  "https://cgq4646h-5001.inc1.devtunnels.ms": [],
+  "https://cgq4646h-5002.inc1.devtunnels.ms": [],
+  "https://cgq4646h-5003.inc1.devtunnels.ms": [],
 };
 
 const MAX_POINTS = 50;

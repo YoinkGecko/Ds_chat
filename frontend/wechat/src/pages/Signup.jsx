@@ -13,7 +13,10 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/signup", form);
+      const res = await axios.post(
+        "https://cgq4646h-4000.inc1.devtunnels.ms/signup",
+        form,
+      );
       alert(res.data.message);
       navigate("/page");
     } catch (err) {

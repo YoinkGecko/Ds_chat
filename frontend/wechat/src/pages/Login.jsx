@@ -12,7 +12,10 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/login", form);
+      const res = await axios.post(
+        "https://cgq4646h-4000.inc1.devtunnels.ms/login",
+        form,
+      );
       alert(res.data.message);
       localStorage.setItem("myUsername", form.username);
       navigate("/page");

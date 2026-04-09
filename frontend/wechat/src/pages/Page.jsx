@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 // Module-level socket — created once, never recreated
-const socket = io("http://localhost:4000", { autoConnect: true });
+const socket = io("https://cgq4646h-4000.inc1.devtunnels.ms/", {
+  autoConnect: true,
+});
 const RTC_CONFIG = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
@@ -115,7 +117,7 @@ export default function Page() {
   };
   // ── Chat API ──────────────────────────────────────────────────────────────
   const fetchBestServer = async () => {
-    const r = await axios.get("http://localhost:4000/bs");
+    const r = await axios.get("https://cgq4646h-4000.inc1.devtunnels.ms/bs");
     return r.data.bestServer;
   };
   const getMessages = async (user) => {
