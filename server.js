@@ -3,10 +3,11 @@ const os = require("os");
 const mysql = require("mysql2/promise");
 
 const db = mysql.createPool({
-  host: "localhost",
+  host: "shortline.proxy.rlwy.net",
+  port: 49903,
   user: "root",
-  password: "root",
-  database: "wechat"
+  password: "JlfFjehfWjhnfEsjAjsgJmvLjSyQXaem",
+  database: "wechat",
 });
 
 const app = express();

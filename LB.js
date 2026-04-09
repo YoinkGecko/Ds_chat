@@ -19,9 +19,10 @@ const io = new Server(httpServer, {
 });
 
 const db = mysql.createPool({
-  host: "localhost",
+  host: "shortline.proxy.rlwy.net",
+  port: 49903,
   user: "root",
-  password: "root",
+  password: "JlfFjehfWjhnfEsjAjsgJmvLjSyQXaem",
   database: "wechat",
 });
 
@@ -48,7 +49,7 @@ let serverStatus = servers.map((url) => ({ url, status: "active" }));
 setInterval(async () => {
   for (const server of serverStatus) {
     try {
-      const res = await axios.get(`${server.url}/test`, { timeout: 2000 });
+      const res = await axios.get(`${server.url}/test`, { timeout: 7000 });
       if (res.data) {
         server.status = "active";
       } else {
@@ -69,7 +70,7 @@ setInterval(async () => {
       }
     }
   }
-}, 1000);
+}, 5000);
 
 setInterval(async () => {
   await Promise.all(
@@ -83,7 +84,7 @@ setInterval(async () => {
       } catch (err) {}
     })
   );
-}, 3000);
+}, 4000);
 
 function getBestServer() {
   let best = null;
