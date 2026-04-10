@@ -27,9 +27,9 @@ const db = mysql.createPool({
 });
 
 const servers = [
-  "https://cgq4646h-5001.inc1.devtunnels.ms",
-  "https://cgq4646h-5002.inc1.devtunnels.ms",
-  "https://cgq4646h-5003.inc1.devtunnels.ms",
+  "https://630wlz4w-5001.inc1.devtunnels.ms",
+  "http://localhost:5002",
+  "http://localhost:5003",
 ];
 
 function calculateScore(cpu, memory) {
@@ -38,9 +38,9 @@ function calculateScore(cpu, memory) {
 }
 
 let history = {
-  "https://cgq4646h-5001.inc1.devtunnels.ms": [],
-  "https://cgq4646h-5002.inc1.devtunnels.ms": [],
-  "https://cgq4646h-5003.inc1.devtunnels.ms": [],
+  "https://630wlz4w-5001.inc1.devtunnels.ms": [],
+  "http://localhost:5002": [],
+  "http://localhost:5003": [],
 };
 
 const MAX_POINTS = 50;
@@ -64,6 +64,7 @@ setInterval(async () => {
           if (error)
             console.error(`Execution error on port ${currentBackup}: ${error.message}`);
         });
+        console.log("backup running on port: "+currentBackup);
         BackUpPort++;
       } else {
         console.log(`${server.url} is still down. Waiting for recovery...`);
